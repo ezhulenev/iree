@@ -11,6 +11,8 @@
 #include "iree/tooling/run_module.h"
 #include "iree/vm/api.h"
 
+#include "openxla/runtime/nvgpu/cudnn_module.h"
+
 int main(int argc, char** argv) {
   int exit_code = EXIT_SUCCESS;
   IREE_TRACE_ZONE_BEGIN(z0);
@@ -34,6 +36,8 @@ int main(int argc, char** argv) {
   iree_vm_instance_t* instance = NULL;
   iree_status_t status =
       iree_tooling_create_instance(host_allocator, &instance);
+
+  openxla::runtime::nvgpu::RegisterCudnnTypes(instance);
 
   // Utility to run the module with the command line flags. This particular
   // method is only useful in these IREE tools that want consistent flags -

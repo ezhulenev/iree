@@ -64,6 +64,7 @@ iree_cc_binary(
     iree::tooling::device_util
     iree::tooling::vm_util
     iree::vm
+    openxla::runtime::nvgpu::cudnn_module
 )
 
 iree_cc_binary(
@@ -172,7 +173,7 @@ iree_cc_binary(
   NAME
     iree-run-module
   SRCS
-    "iree-run-module-main.c"
+    "iree-run-module-main.cc"
   DEPS
     iree::base
     iree::base::internal::flags
@@ -181,6 +182,7 @@ iree_cc_binary(
     iree::tooling::context_util
     iree::tooling::run_module
     iree::vm
+    openxla::runtime::nvgpu::cudnn_module
 )
 
 iree_cc_binary(

@@ -18,6 +18,7 @@
 #include "iree/tooling/vm_util.h"
 #include "iree/vm/api.h"
 #include "iree/vm/bytecode/module.h"
+#include "openxla/runtime/nvgpu/cudnn_module.h"
 
 IREE_FLAG(string, function, "",
           "Name of a function contained in the module specified by --module= "
@@ -94,6 +95,12 @@ static iree_status_t iree_tooling_create_run_context(
   // Load all modules specified by --module= flags.
   iree_tooling_module_list_t module_list;
   iree_tooling_module_list_initialize(&module_list);
+
+  iree_vm_module_t* cudnn_module = NULL;
+  IREE_CHECK_OK(openxla::runtime::nvgpu::CreateCudnnModule(
+      instance, host_allocator, &cudnn_module));
+  IREE_CHECK_OK(iree_tooling_module_list_push_back(&module_list, cudnn_module));
+
   IREE_RETURN_IF_ERROR(iree_tooling_load_modules_from_flags(
                            instance, host_allocator, &module_list),
                        "loading modules and dependencies");

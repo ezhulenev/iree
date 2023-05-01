@@ -177,7 +177,7 @@ iree_cc_library(
   HDRS
     "run_module.h"
   SRCS
-    "run_module.c"
+    "run_module.cc"
   DEPS
     ::comparison
     ::context_util
@@ -191,6 +191,7 @@ iree_cc_library(
     iree::modules::hal::types
     iree::vm
     iree::vm::bytecode::module
+    openxla::runtime::nvgpu::cudnn_module
   PUBLIC
 )
 

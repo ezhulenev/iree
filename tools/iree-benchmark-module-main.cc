@@ -70,6 +70,7 @@
 #include "iree/tooling/device_util.h"
 #include "iree/tooling/vm_util.h"
 #include "iree/vm/api.h"
+#include "openxla/runtime/nvgpu/cudnn_module.h"
 
 constexpr char kNanosecondsUnitString[] = "ns";
 constexpr char kMicrosecondsUnitString[] = "us";
@@ -454,6 +455,14 @@ class IREEBenchmark {
     iree_allocator_t host_allocator = iree_allocator_system();
     IREE_RETURN_IF_ERROR(
         iree_tooling_create_instance(host_allocator, &instance_));
+
+    openxla::runtime::nvgpu::RegisterCudnnTypes(instance_.get());
+
+    iree_vm_module_t* cudnn_module = NULL;
+    IREE_CHECK_OK(openxla::runtime::nvgpu::CreateCudnnModule(
+        instance_.get(), host_allocator, &cudnn_module));
+    IREE_CHECK_OK(
+        iree_tooling_module_list_push_back(&module_list_, cudnn_module));
 
     IREE_RETURN_IF_ERROR(iree_tooling_load_modules_from_flags(
         instance_.get(), host_allocator, &module_list_));
