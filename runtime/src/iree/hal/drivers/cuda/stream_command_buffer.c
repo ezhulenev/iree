@@ -463,7 +463,7 @@ static iree_status_t iree_hal_cuda_stream_command_buffer_push_descriptor_set(
   // should be able to avoid it like we do on the CPU side with a bitmap.
   qsort(binding_used, binding_count, sizeof(iree_hal_cuda_binding_mapping_t),
         compare_binding_index);
-  assert(binding_count < IREE_HAL_CUDA_MAX_BINDING_COUNT &&
+  assert(binding_count <= IREE_HAL_CUDA_MAX_BINDING_COUNT &&
          "binding count larger than the max expected.");
 
   for (iree_host_size_t i = 0; i < binding_count; i++) {

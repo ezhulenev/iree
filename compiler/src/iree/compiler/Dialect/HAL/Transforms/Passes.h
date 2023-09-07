@@ -96,6 +96,9 @@ std::unique_ptr<OperationPass<void>> createInlineDeviceSwitchesPass();
 // Finds hal.device.query ops and creates variables initialized on startup.
 std::unique_ptr<OperationPass<mlir::ModuleOp>> createMemoizeDeviceQueriesPass();
 
+std::unique_ptr<OperationPass<mlir::ModuleOp>> createPreFixupForXlaPass();
+std::unique_ptr<OperationPass<mlir::ModuleOp>> createFixupForXlaPass();
+
 //===----------------------------------------------------------------------===//
 // Executable translation
 //===----------------------------------------------------------------------===//

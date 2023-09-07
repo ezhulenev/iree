@@ -53,6 +53,8 @@ IREE_CU_PFN_DECL(cuMemHostRegister, void*, size_t, unsigned int)
 IREE_CU_PFN_DECL(cuMemHostUnregister, void*)
 IREE_CU_PFN_DECL(cuMemHostGetDevicePointer, CUdeviceptr*, void*, unsigned int)
 IREE_CU_PFN_DECL(cuMemPoolCreate, CUmemoryPool*, const CUmemPoolProps*)
+IREE_CU_PFN_DECL(cuGraphAddEmptyNode, CUgraphNode*, CUgraph, const CUgraphNode*,
+                 size_t)
 IREE_CU_PFN_DECL(cuMemPoolDestroy, CUmemoryPool)
 IREE_CU_PFN_DECL(cuMemPoolSetAccess, CUmemoryPool, const CUmemAccessDesc*,
                  size_t)

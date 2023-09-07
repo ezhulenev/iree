@@ -392,6 +392,10 @@ void buildHALTransformPassPipeline(OpPassManager &passManager,
     passManager.addPass(
         IREE::Util::createFixedPointIteratorPass(std::move(ipoPipeline)));
   }
+
+  passManager.addPass(createPreFixupForXlaPass());
+  passManager.addPass(createCanonicalizerPass());
+  passManager.addPass(createFixupForXlaPass());
 }
 
 void buildHALTransformPassPipeline(OpPassManager &passManager,

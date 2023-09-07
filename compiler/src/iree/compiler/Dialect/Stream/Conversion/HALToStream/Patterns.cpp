@@ -35,6 +35,42 @@ struct ConvertTensorImportOp
       return rewriter.notifyMatchFailure(op, "unsupported HAL cast conversion");
     }
 
+    // Transfer resource to unknown lifetime state.
+    auto transfer = [&](Value resource, Value resultSize) -> LogicalResult {
+      auto unknownType = rewriter.getType<IREE::Stream::ResourceType>();
+      rewriter.replaceOpWithNewOp<IREE::Stream::AsyncTransferOp>(
+          op, unknownType, resource, resultSize, resultSize,
+          /*source_affinity=*/nullptr,
+          /*result_affinity=*/nullptr);
+      return success();
+    };
+
+    // // If imported tensor defined by a `hal.buffer.subspan` operation, we will
+    // // use resource subview operation to import it directly from the original
+    // // resource, otherwise we might construct aliased resources, and it will
+    // // break downstream concurrency scheduling passes that rely on non-aliasing
+    // // property of all resources.
+    // if (auto subspanOp = dyn_cast_if_present<IREE::HAL::BufferSubspanOp>(
+    //         op.getSource().getDefiningOp());
+    //     subspanOp && !op.getWaitFence()) {
+    //   auto srcBuffer = rewriter.getRemappedValue(subspanOp.getSourceBuffer());
+    //   if (auto exportOp = dyn_cast_if_present<IREE::Stream::TensorExportOp>(
+    //           srcBuffer.getDefiningOp())) {
+    //     Value resource = rewriter.create<IREE::Stream::ResourceSubviewOp>(
+    //         op.getLoc(), exportOp.getSource(), exportOp.getSourceSize(),
+    //         subspanOp.getSourceOffset(), subspanOp.getLength());
+    //     return transfer(resource, subspanOp.getLength());
+    //   }
+    // }
+
+    // Resource type and size for imported buffer view.
+    auto resultType = rewriter.getType<IREE::Stream::ResourceType>(
+        IREE::Stream::Lifetime::External);
+    auto resultSize = rewriter.createOrFold<IREE::Stream::TensorSizeOfOp>(
+        op.getLoc(), rewriter.getIndexType(),
+        TypeAttr::get(op.getTarget().getType()), adaptor.getTargetDims(),
+        /*affinity=*/nullptr);
+
     // Assert the shape of the buffer view matches the expected encoding
     // shape. We can only do this when we are importing a buffer view as that's
     // what carries the information we need to validate.
@@ -52,17 +88,10 @@ struct ConvertTensorImportOp
     }
 
     // Import (buffer view to stream resource).
-    auto resultType = rewriter.getType<IREE::Stream::ResourceType>(
-        IREE::Stream::Lifetime::External);
-    auto resultSize = rewriter.createOrFold<IREE::Stream::TensorSizeOfOp>(
-        op.getLoc(), rewriter.getIndexType(),
-        TypeAttr::get(op.getTarget().getType()), adaptor.getTargetDims(),
-        /*affinity=*/nullptr);
     Value resource = rewriter.create<IREE::Stream::TensorImportOp>(
         op.getLoc(), resultType, adaptor.getSource(), TypeAttr::get(targetType),
         adaptor.getTargetDims(), resultSize,
         /*affinity=*/nullptr);
-
     // Await the fence, if needed. When not specified the resource is assumed to
     // be immediately available.
     if (auto waitFence = op.getWaitFence()) {
@@ -76,13 +105,7 @@ struct ConvertTensorImportOp
                          ValueRange{resultSize}, waitTimepoint)
                      .getResult(0);
     }
-
-    auto unknownType = rewriter.getType<IREE::Stream::ResourceType>();
-    rewriter.replaceOpWithNewOp<IREE::Stream::AsyncTransferOp>(
-        op, unknownType, resource, resultSize, resultSize,
-        /*source_affinity=*/nullptr,
-        /*result_affinity=*/nullptr);
-    return success();
+    return transfer(resource, resultSize);
   }
 
   // Inserts IR to assert that the buffer view shape and encoding matches the

@@ -65,6 +65,9 @@ struct WavePartitionBuilder {
         insertionPt = definingOp; // moving insertion point down
       }
     }
+
+    insertionPt = partition->ops.back();
+
     OpBuilder parentBuilder(context);
     if (insertionPt) {
       parentBuilder.setInsertionPointAfter(insertionPt);
@@ -262,7 +265,7 @@ public:
     // Sort the ops in the execution region as they may have gotten out of order
     // during partitioning. This is safe because we are still unaliased and SSA
     // values imply ordering.
-    mlir::sortTopologically(block);
+    // mlir::sortTopologically(block);
 
     LLVM_DEBUG({
       llvm::dbgs() << "\nWaves constructed:\n";
